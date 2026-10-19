@@ -1,0 +1,14 @@
+{
+  "name": "claude-model-gear",
+  "owner": {
+    "name": "Muhammad Moussa"
+  },
+  "description": "Model Gear: picks the Claude Code model and reasoning effort for each prompt",
+  "plugins": [
+    {
+      "name": "model-gear",
+      "source": "./model-gear",
+      "description": "Automatically selects the right Claude Code model and reasoning effort for every prompt, balancing performance, speed, and cost."
+    }
+  ]
+}

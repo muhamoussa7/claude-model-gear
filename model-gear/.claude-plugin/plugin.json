@@ -1,0 +1,21 @@
+{
+  "name": "model-gear",
+  "version": "0.2.0",
+  "description": "Automatically selects the right Claude Code model and reasoning effort for every prompt, balancing performance, speed, and cost.",
+  "author": {
+    "name": "Muhammad Moussa"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/muhamoussa7/claude-model-gear",
+  "homepage": "https://github.com/muhamoussa7/claude-model-gear",
+  "keywords": [
+    "model",
+    "effort",
+    "routing",
+    "cost",
+    "haiku",
+    "sonnet",
+    "opus"
+  ],
+  "types": "./types/index.d.ts"
+}

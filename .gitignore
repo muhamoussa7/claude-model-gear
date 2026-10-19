@@ -1,0 +1,5 @@
+.DS_Store
+node_modules/
+
+# Generated host typings, recreated by Claude Code. Not part of the source.
+model-gear/.claude-plugin/types/
