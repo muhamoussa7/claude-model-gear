@@ -367,12 +367,11 @@ describe('the line under the prompt', () => {
 })
 
 describe('the status bar chip', () => {
-  test('names the model and effort in use once a prompt is sorted', async () => {
-    const pick = { level: 'everyday' as const, effort: 'medium' as const, model: 'sonnet', isGuess: false }
-
-    expect(chipLabel(true, 120, pick)).toBe(' Model Gear: sonnet · medium ')
-    expect(chipLabel(true, 40, pick)).toBe(' Gear: medium ')
-    expect(chipLabel(false, 120, null)).toBe(' Model Gear: Off ')
+  test('says only whether it is on, in a wide and a narrow footer', () => {
+    expect(chipLabel(true, 120)).toBe(' Model Gear: On ')
+    expect(chipLabel(false, 120)).toBe(' Model Gear: Off ')
+    expect(chipLabel(true, 40)).toBe(' Gear: On ')
+    expect(chipLabel(false, 40)).toBe(' Gear: Off ')
   })
 
   for (const surface of ['terminal', 'desktop'] as const) {

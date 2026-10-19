@@ -209,24 +209,19 @@ export function restoreValue(previous: string, options: readonly string[]): stri
 
 /**
  * The chip's words, shortened on a narrow terminal so the footer never wraps.
- * Once a prompt is sorted it names the model and effort in use, since the
- * footer's own effort reads the saved setting, not the one sent.
+ * It only says whether Model Gear is on; the model and effort in use are on
+ * the line under the prompt.
  */
-export function chipLabel(isOn: boolean, columns: number, pick: LastPick | null = null): string {
+export function chipLabel(isOn: boolean, columns: number): string {
   const state = isOn ? 'On' : 'Off'
-  const isWide = columns >= 60
 
-  if (isOn && pick !== null && isEffort(pick.effort)) {
-    return isWide ? ` Model Gear: ${pick.model} · ${pick.effort} ` : ` Gear: ${pick.effort} `
-  }
-
-  return isWide ? ` Model Gear: ${state} ` : ` Gear: ${state} `
+  return columns >= 60 ? ` Model Gear: ${state} ` : ` Gear: ${state} `
 }
 
 /**
- * The line pinned under the prompt: the model and effort the last prompt got,
- * worded as the chip has them, minus the "Model Gear:" label because the
- * engine already prefixes the plugin's name. Undefined clears the line.
+ * The line pinned under the prompt: the model and effort the last prompt got.
+ * The engine prefixes the plugin's name, so the text carries no label.
+ * Undefined clears the line.
  */
 export function statusLine(isOn: boolean, pick: LastPick | null): string | undefined {
   if (!isOn || pick === null || !isEffort(pick.effort)) return undefined

@@ -316,10 +316,9 @@ export const register: Register = on => {
 
   on('ui.render', { component: 'SessionMode' }, async ($, e) => {
     const isOn = await read($, enabled)
-    const pick = await read($, last)
     const { Box, Button, Text } = $.ui.resolve(e)
     const columns = e.viewport?.columns ?? 80
-    const label = chipLabel(isOn, columns, pick)
+    const label = chipLabel(isOn, columns)
     const modes = e.props.modes.join(' & ')
 
     return (
