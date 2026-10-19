@@ -21,6 +21,17 @@ Start a new session, then run:
 
 A "Model Gear" chip appears in the footer. Press it to switch Model Gear on or off.
 
+## Where it works
+
+| Where | Works? |
+| --- | --- |
+| Terminal (`claude`) | Yes |
+| Claude desktop app, Code tab | Yes, for local sessions. Not in WSL sessions. |
+| VS Code extension | Yes, with extension 2.1.299 or later |
+| JetBrains | Yes, through the `claude` CLI in the IDE terminal |
+| Claude Code on the web (claude.ai/code) | No. Cloud sessions don't load plugins from your machine. |
+| Regular claude.ai chat | No. Plugins don't run in chat. |
+
 ## Use
 
 | Command | What it does |
