@@ -230,6 +230,19 @@ async function effortToSend($: Engine): Promise<Effort | undefined> {
   return pick !== null && isEffort(pick.effort) ? pick.effort : undefined
 }
 
+/**
+ * The effort /effort saves: the overall level and the per-model ones. Undefined
+ * when the settings can't be read, which counts as a change.
+ */
+async function savedEffort($: Engine): Promise<string | undefined> {
+  try {
+    const settings = await $.settings.read()
+    return JSON.stringify([settings.effortLevel, settings.modelSettings])
+  } catch {
+    return undefined
+  }
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     try {
@@ -294,11 +307,15 @@ export const register: Register = on => {
     return yield* next(e)
   })
 
-  // An effort set by hand wins, as a model picked by hand does.
+  // An effort set by hand wins, as a model picked by hand does. A bare /effort
+  // opens a menu that can be cancelled, so it counts only if the saved effort moved.
   on('command.run', { command: 'effort' }, async ($, e, next) => {
+    const args = e.args.trim().toLowerCase()
+    const before = args === '' ? await savedEffort($) : undefined
     const result = await next(e)
     const isPersons = e.origin.kind === 'composer' || e.origin.kind === 'bridge'
-    const isEffortChange = !e.args.trim().toLowerCase().startsWith('ultracode')
+    const isEffortChange =
+      !args.startsWith('ultracode') && (args !== '' || before === undefined || (await savedEffort($)) !== before)
 
     if (isPersons && isEffortChange) {
       try {

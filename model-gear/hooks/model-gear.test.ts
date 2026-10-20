@@ -19,14 +19,30 @@ const OPTIONS = ['Default (recommended)', 'fable', 'opus', 'opus[1m]', 'sonnet',
 const ZERO = { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 }
 const PRESENTATION = { isFullscreen: false, columns: 100 }
 
-type World = { model: string; sets: string[]; asked: number; sent: TurnStepInput['effort'][] }
+type World = {
+  model: string
+  sets: string[]
+  asked: number
+  sent: TurnStepInput['effort'][]
+  saved: Record<string, unknown>
+}
 
-/** Stands in for the engine beneath the mod: the /config model row, the quick check, the store, the requests. */
+/**
+ * Stands in for the engine beneath the mod: the /config model row, the quick check, the store, the requests,
+ * the saved effort. `picked` is what the bare /effort menu chooses; left out, the menu is cancelled.
+ */
 function world(
   on: On,
-  setup: { model: string; answer?: string; store?: Record<string, unknown>; refuse?: string; isBroken?: boolean },
+  setup: {
+    model: string
+    answer?: string
+    store?: Record<string, unknown>
+    refuse?: string
+    isBroken?: boolean
+    picked?: string
+  },
 ): World {
-  const seen: World = { model: setup.model, sets: [], asked: 0, sent: [] }
+  const seen: World = { model: setup.model, sets: [], asked: 0, sent: [], saved: { effortLevel: 'xhigh' } }
 
   mock.store(on, setup.store ?? {})
   on('config.list', () => {
@@ -63,7 +79,13 @@ function world(
     seen.sent.push(e.effort)
     return { turnId: e.turnId, index: e.index, answer: '', toolUses: [], stopReason: 'end_turn' as const, usage: null }
   })
-  on('command.run', { command: 'effort' }, ($, e) => ({ text: `Set effort level to ${e.args}` }))
+  on('settings.read', () => ({ value: seen.saved }))
+  on('command.run', { command: 'effort' }, ($, e) => {
+    const level = e.args === '' ? setup.picked : e.args
+    if (level === undefined) return { text: 'Cancelled' }
+    seen.saved = { effortLevel: level }
+    return { text: `Set effort level to ${level}` }
+  })
 
   return seen
 }
@@ -342,6 +364,28 @@ describe('sending the effort with the model', () => {
     expect(seen.sent).toEqual(['max'])
     expect(seen.model).toBe('haiku')
     expect(after.text).toBe('Model Gear is off. The model is haiku.')
+  })
+
+  test('opening the /effort menu and cancelling it leaves Model Gear on', async ($, on) => {
+    const seen = world(on, { model: 'opus', answer: 'strong high', store: { enabled: true, previous: 'opus' } })
+
+    await $.prompt.submit(typed('Design the retry policy for the sync worker'))
+    await $.command.run({ ...command(''), command: 'effort' })
+    await step($, { model: 'claude-opus-5-5', effort: 'xhigh' })
+
+    expect(seen.sent).toEqual(['high'])
+  })
+
+  test('a level picked in the /effort menu turns Model Gear off', async ($, on) => {
+    const seen = world(on, { model: 'opus', answer: 'strong high', picked: 'max', store: { enabled: true, previous: 'opus' } })
+
+    await $.prompt.submit(typed('Design the retry policy for the sync worker'))
+    await $.command.run({ ...command(''), command: 'effort' })
+    await step($, { model: 'claude-opus-5-5', effort: 'max' })
+    const after = await $.command.run(command('status'))
+
+    expect(seen.sent).toEqual(['max'])
+    expect(after.text).toBe('Model Gear is off. The model is opus.')
   })
 
   test('status names the effort the last prompt ran at', async ($, on) => {
