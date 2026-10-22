@@ -88,6 +88,7 @@ async function turnOff($: Engine, restore: boolean): Promise<string> {
   await $.store.set('enabled', false)
   await $.store.delete('previous')
   await $.store.delete('applied')
+  await $.store.delete('effort')
   await update($, enabled, () => false)
   await update($, last, () => null)
   showLine($, null, false)
@@ -186,6 +187,7 @@ async function pickModel($: Engine, text: string): Promise<void> {
   if (typeof applied === 'string' && !isSameModel(current, applied)) {
     // The model moved since Model Gear set it (/model, the picker): the person's pick wins.
     await turnOff($, false)
+    $.ui.toast(`Model Gear is off because the model changed from ${applied} to ${current}. /modelgear on turns it back on.`)
     return
   }
 
@@ -215,6 +217,8 @@ async function pickModel($: Engine, text: string): Promise<void> {
   await $.store.set('applied', asText(after?.value ?? chosen))
   const pick: LastPick = { level, effort, model: chosen, isGuess: answered === undefined }
   await update($, last, () => pick)
+  // Read by the person's status bar, which shows the saved effort, not the one sent.
+  await $.store.set('effort', effort)
   showLine($, pick, true)
 }
 
@@ -288,7 +292,10 @@ export const register: Register = on => {
 
     if (result.deny === undefined && isPersons) {
       try {
-        if (await isEnabled($)) await turnOff($, false)
+        if (await isEnabled($)) {
+          await turnOff($, false)
+          $.ui.toast(`Model Gear is off because the model was set to ${String(e.value)}. /modelgear on turns it back on.`)
+        }
       } catch {
         // The person's own pick has landed either way.
       }

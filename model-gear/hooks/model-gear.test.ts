@@ -40,11 +40,30 @@ function world(
     refuse?: string
     isBroken?: boolean
     picked?: string
+    writes?: string[]
   },
 ): World {
   const seen: World = { model: setup.model, sets: [], asked: 0, sent: [], saved: { effortLevel: 'xhigh' } }
 
-  mock.store(on, setup.store ?? {})
+  if (setup.writes === undefined) {
+    mock.store(on, setup.store ?? {})
+  } else {
+    // A store of its own that also notes each write to the status bar's effort.
+    const kept = new Map(Object.entries(setup.store ?? {}))
+    const log = setup.writes
+    on('store.get', ($, e) => ({ value: kept.get(e.key) }))
+    on('store.keys', () => ({ value: [...kept.keys()] }))
+    on('store.set', ($, e) => {
+      kept.set(e.key, e.value)
+      if (e.key === 'effort') log.push(`set ${String(e.value)}`)
+      return { value: undefined }
+    })
+    on('store.delete', ($, e) => {
+      kept.delete(e.key)
+      if (e.key === 'effort') log.push('delete')
+      return { value: undefined }
+    })
+  }
   on('config.list', () => {
     if (setup.isBroken === true) throw new Error('settings unreadable')
     const row = {
@@ -364,6 +383,16 @@ describe('sending the effort with the model', () => {
     expect(seen.sent).toEqual(['max'])
     expect(seen.model).toBe('haiku')
     expect(after.text).toBe('Model Gear is off. The model is haiku.')
+  })
+
+  test('the effort sent is kept in the store for the status bar, and dropped when off', async ($, on) => {
+    const writes: string[] = []
+    world(on, { model: 'opus', answer: 'strong high', store: { enabled: true, previous: 'opus' }, writes })
+
+    await $.prompt.submit(typed('Design the retry policy for the sync worker'))
+    await $.command.run(command('off'))
+
+    expect(writes).toEqual(['set high', 'delete'])
   })
 
   test('opening the /effort menu and cancelling it leaves Model Gear on', async ($, on) => {
