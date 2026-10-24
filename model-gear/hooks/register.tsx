@@ -183,14 +183,9 @@ async function pickModel($: Engine, text: string): Promise<void> {
   if (row === undefined || row.isLocked) return
 
   const current = asText(row.value)
-  const applied = await $.store.get('applied')
-  if (typeof applied === 'string' && !isSameModel(current, applied)) {
-    // The model moved since Model Gear set it (/model, the picker): the person's pick wins.
-    await turnOff($, false)
-    $.ui.toast(`Model Gear is off because the model changed from ${applied} to ${current}. /modelgear on turns it back on.`)
-    return
-  }
-
+  // A hand pick (/model, the picker) arrives through the config.set hook below and turns
+  // Model Gear off there. A model that differs here without that (a reset after /compact,
+  // another window sharing the setting) is drift, so Model Gear stays on and sorts again.
   const options = row.options ?? []
   const answer = await askSmallModel($, text, options)
   const answered = answer === undefined ? undefined : parseLevel(answer)

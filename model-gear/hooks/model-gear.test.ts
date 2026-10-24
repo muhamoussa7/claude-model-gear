@@ -235,6 +235,18 @@ describe('staying out of the way', () => {
   })
 })
 
+describe('a model that moved without a hand pick', () => {
+  test('keeps Model Gear on and sorts the prompt again', async ($, on) => {
+    const seen = world(on, { model: 'opus', answer: 'small', store: { enabled: true, previous: 'sonnet', applied: 'sonnet' } })
+
+    await $.prompt.submit(typed('Rename the variable foo to bar in utils'))
+    const after = await $.command.run(command('status'))
+
+    expect(seen.sets).toEqual(['haiku'])
+    expect(after.text).toContain('Model Gear is on.')
+  })
+})
+
 describe('going back to the earlier model when turned off', () => {
   test('off puts back the model in use before Model Gear was turned on', async ($, on) => {
     const seen = world(on, { model: 'sonnet', answer: 'strong' })

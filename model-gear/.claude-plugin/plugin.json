@@ -1,6 +1,6 @@
 {
   "name": "model-gear",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Automatically selects the right Claude Code model and reasoning effort for every prompt, balancing performance, speed, and cost.",
   "author": {
     "name": "Muhammad Moussa"
